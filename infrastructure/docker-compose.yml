@@ -1,0 +1,101 @@
+# OODA-Aegis: the whole defended system on one machine.
+#   docker compose up --build -d
+# Dashboard: http://localhost:3030   Public API (through the proxy): http://localhost:8080
+name: ooda-aegis
+
+services:
+  # Public entry point. The agent rewrites its virtual patches and upstream weights at runtime.
+  proxy:
+    image: nginx:1.27-alpine
+    container_name: aegis_proxy
+    ports:
+      - "8080:80"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./proxy/templates:/etc/nginx/aegis-templates:ro
+      - ./proxy/10-aegis-init.sh:/docker-entrypoint.d/10-aegis-init.sh:ro
+      - proxy_conf:/etc/nginx/aegis
+    depends_on:
+      - app_blue
+    networks: [aegis_net]
+
+  # The production service, release v1.0.0, with three real vulnerabilities.
+  app_blue:
+    build: ./app
+    image: aegis-app:v1.0.0
+    container_name: aegis_app_blue
+    environment:
+      - CONTAINER_VERSION=v1.0.0-vulnerable
+      - CONTAINER_NAME=aegis_app_blue
+      - REDIS_HOST=redis_bus
+    networks: [aegis_net]
+
+  # Telemetry stream and fleet vaccine bus.
+  redis_bus:
+    image: redis:7.4-alpine
+    container_name: aegis_redis
+    networks: [aegis_net]
+
+  # Three peer edge nodes that receive vaccines.
+  node_eu:
+    build: ./fleet
+    image: aegis-fleet-node:latest
+    container_name: aegis_node_eu
+    environment: [NODE_ID=node-eu-west, NODE_ZONE=eu-west-1, REDIS_HOST=redis_bus]
+    networks: [aegis_net]
+  node_ap:
+    image: aegis-fleet-node:latest
+    container_name: aegis_node_ap
+    environment: [NODE_ID=node-ap-south, NODE_ZONE=ap-south-1, REDIS_HOST=redis_bus]
+    depends_on: [node_eu]
+    networks: [aegis_net]
+  node_us:
+    image: aegis-fleet-node:latest
+    container_name: aegis_node_us
+    environment: [NODE_ID=node-us-east, NODE_ZONE=us-east-2, REDIS_HOST=redis_bus]
+    depends_on: [node_eu]
+    networks: [aegis_net]
+
+  # The autonomous defense agent.
+  agent:
+    build: ./agent
+    image: aegis-agent:latest
+    container_name: aegis_agent
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      - REDIS_HOST=redis_bus
+      - APP_IMAGE=aegis-app:v1.0.0
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434/v1}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - proxy_conf:/shared/proxy
+      - ./app:/app_source:ro
+      - aegis_work:/work
+    depends_on: [proxy, redis_bus, node_eu, node_ap, node_us]
+    networks: [aegis_net]
+
+  # The dashboard (built React app), proxying /api to the agent.
+  dashboard:
+    build:
+      context: ..
+      dockerfile: infrastructure/dashboard/Dockerfile
+    image: aegis-dashboard:latest
+    container_name: aegis_dashboard
+    ports:
+      - "3030:80"
+    depends_on: [agent]
+    networks: [aegis_net]
+
+volumes:
+  proxy_conf:
+    name: aegis_proxy_conf
+  aegis_work:
+    name: aegis_work
+
+networks:
+  aegis_net:
+    name: aegis_net

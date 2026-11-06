@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/* One palette, used as given. Areas are separated by a change of background, never by borders.
+   ink   #06141B  page
+   deep  #11212D  panels
+   raise #253745  items, selected, hover
+   slate #4A5C6A  tracks, disabled
+   mist  #9BA8AB  secondary text
+   fog   #CCD0CF  primary text
+   Three status colours: attack, held at the edge, healed. */
+@theme {
+  --font-sans: "Chakra Petch", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Share Tech Mono", ui-monospace, monospace;
+
+  --color-ink: #06141B;
+  --color-deep: #11212D;
+  --color-raise: #253745;
+  --color-slate: #4A5C6A;
+  --color-mist: #9BA8AB;
+  --color-fog: #CCD0CF;
+  --color-attack: #E5646E;
+  --color-hold: #DDB874;
+  --color-ok: #93C9A6;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+}
+
+html,
+body {
+  background: #06141B;
+  color: #CCD0CF;
+  font-family: var(--font-sans);
+  letter-spacing: normal;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+::selection {
+  background: #4A5C6A;
+  color: #CCD0CF;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #253745;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid #CCD0CF;
+  outline-offset: 2px;
+}

@@ -1,0 +1,99 @@
+1
+00:00:00,500 --> 00:00:04,550
+In a city that never sleeps, one vault keeps the files of ten thousand customers
+
+2
+00:00:05,200 --> 00:00:09,850
+Tonight, a thief has found a crack in its door
+
+3
+00:00:10,300 --> 00:00:17,350
+He needs no key. Only a strange name for a file: ../../../../etc/passwd
+
+4
+00:00:17,900 --> 00:00:22,350
+And the vault, obedient, hands over its own secrets
+
+5
+00:00:22,800 --> 00:00:26,400
+Someone must wake, find the flaw, forge a fix, test it and send it out
+
+6
+00:00:26,500 --> 00:00:29,850
+That takes hours. All the while, the thief keeps taking
+
+7
+00:00:30,400 --> 00:00:34,850
+A hasty rule on the door? He changes one mark and walks straight past
+
+8
+00:00:35,400 --> 00:00:39,850
+And a fix written by a machine is not safe merely because it looks right
+
+9
+00:00:50,300 --> 00:00:54,850
+The guardian reads every answer the vault gives. One stolen file is enough
+
+10
+00:00:55,200 --> 00:00:59,100
+Llama 3.2 3B names the attack in two seconds: path traversal
+
+11
+00:00:59,200 --> 00:01:02,350
+What you see is a real run, recorded live on a laptop
+
+12
+00:01:02,800 --> 00:01:07,350
+He seals the gate, makes sure honest visitors still pass, and sets the seal at the proxy
+
+13
+00:01:07,700 --> 00:01:12,350
+Contained 5.3 seconds after the leak. The thief gets 403, customers get their files
+
+14
+00:01:12,800 --> 00:01:17,350
+Then he attacks his own seal. Some of his shadows slip through. The door itself must change
+
+15
+00:01:17,600 --> 00:01:19,850
+Thirteen new tricks. A rule alone cannot hold them all
+
+16
+00:01:20,300 --> 00:01:24,850
+Llama 3.1 8B writes down what the code must promise, then reforges it
+
+17
+00:01:25,200 --> 00:01:32,350
+The new code keeps only the file's name, so nothing outside the folder can be reached
+
+18
+00:01:32,800 --> 00:01:37,350
+In a sealed room, the real attack must break the old lock and fail on the new one
+
+19
+00:01:37,700 --> 00:01:44,850
+Every trick, every old test and every honest request must pass. The machine's own test counts for nothing
+
+20
+00:01:45,300 --> 00:01:49,850
+The new lock goes on one gate, then half of them, then all, checked at every step
+
+21
+00:01:50,200 --> 00:01:54,850
+If a single check fails, the old lock returns at once
+
+22
+00:01:55,300 --> 00:01:59,850
+Healed 42.6 seconds after the leak. The thief tries his scroll again, and gets nothing
+
+23
+00:02:00,200 --> 00:02:04,850
+A second flaw, SQL injection: mended with a parameterised query in 46 seconds
+
+24
+00:02:05,300 --> 00:02:09,850
+And when no fix can pass the trial, he changes nothing and rings for a human
+
+25
+00:02:10,400 --> 00:02:19,850
+Every model is Meta's, with open weights. Your code and secrets never leave your own machine

@@ -1,0 +1,17 @@
+[
+ {
+  "name": "path_traversal",
+  "title": "Path traversal: contained in 5.3 s, healed in 42.6 s",
+  "file": "path_traversal.jsonl"
+ },
+ {
+  "name": "sqli",
+  "title": "SQL injection: healed in 46.3 s (no safe edge rule, straight to repair)",
+  "file": "sqli.jsonl"
+ },
+ {
+  "name": "redos_escalated",
+  "title": "ReDoS: contained, but no fix passed the gate, so it escalated safely",
+  "file": "redos_escalated.jsonl"
+ }
+]

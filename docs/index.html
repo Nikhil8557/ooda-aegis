@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OODA-Aegis</title>
+<meta name="description" content="OODA-Aegis by Nikhil Kumar: an AI agent that spots a break-in on a live website, blocks it in seconds, writes the code fix, proves it and puts it live. Runs on Meta's open models.">
+<meta property="og:title" content="OODA-Aegis">
+<meta property="og:description" content="Someone breaks into your website at 3 a.m. OODA-Aegis has fixed it before you wake up. Built on Meta Llama and Muse Glimmer.">
+<meta property="og:image" content="assets/poster.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* Blue palette, used as given. The 3D scene behind the page is lit, so depth comes from light, not CSS gradients. */
+:root {
+  --ink: #06141B; --deep: #11212D; --raise: #253745; --slate: #4A5C6A; --mist: #9BA8AB; --fog: #CCD0CF;
+  --attack: #E5646E; --ok: #93C9A6; --accent: #E5646E;
+  --page: #06141B;
+}
+* { box-sizing: border-box; }
+html { background: var(--page); }
+body { margin: 0; color: var(--fog); font-family: "Chakra Petch", system-ui, sans-serif; font-size: 18px; line-height: 1.6; background: transparent; }
+a { color: var(--fog); }
+#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+main, nav, footer { position: relative; z-index: 1; }
+
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 5; display: flex; justify-content: space-between; align-items: center; padding: 16px 32px; }
+nav .name { font-weight: 600; text-decoration: none; font-size: 18px; }
+nav .links { display: flex; gap: 24px; font-size: 16px; }
+nav .links a { color: var(--mist); text-decoration: none; }
+nav .links a:hover { color: var(--fog); }
+nav .links a.app { color: var(--ink); background: var(--accent); padding: 6px 16px; border-radius: 4px; font-weight: 600; }
+nav .links a.app:hover { background: var(--fog); }
+
+.chapter { min-height: 130vh; display: flex; align-items: center; padding: 96px 32px; }
+.chapter.hero { min-height: 100vh; }
+.copy { max-width: 560px; min-width: 0; width: 100%; margin-left: max(0px, calc((100vw - 1200px) / 2)); }
+.copy.rise { transform: translate3d(0, 0, 0); }
+h1, h2, h3, nav .name, .fact b { font-family: "Share Tech Mono", ui-monospace, monospace; font-weight: 400; }
+h1 { font-size: clamp(34px, 4.4vw, 58px); line-height: 1.08; margin: 0 0 24px; }
+.hl { color: var(--accent); }
+.prompt { font-family: "JetBrains Mono", monospace; font-size: 15px; color: var(--accent); margin: 0 0 16px; }
+.prompt span { display: inline-block; width: 10px; height: 18px; background: var(--accent); vertical-align: -3px; margin-left: 4px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { background: transparent; } }
+h2 { font-size: clamp(32px, 3.8vw, 48px); line-height: 1.15; margin: 0 0 24px; }
+h3 { font-size: 22px; margin: 0 0 8px; }
+p { margin: 0 0 16px; }
+.lede { font-size: clamp(19px, 1.7vw, 22px); color: var(--mist); }
+.muted { color: var(--mist); }
+.buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 32px; }
+.btn { text-decoration: none; font-weight: 600; font-size: 16px; padding: 12px 24px; border-radius: 4px; background: var(--raise); color: var(--fog); }
+.btn:hover { background: var(--slate); }
+.btn.primary { background: var(--accent); color: var(--ink); }
+.btn.primary:hover { background: var(--fog); }
+code { font-family: "JetBrains Mono", monospace; font-size: 0.9em; color: var(--fog); }
+
+.log { margin-top: 40px; background: var(--deep); border-radius: 4px; padding: 12px 16px; font-family: "JetBrains Mono", monospace; font-size: 14px; line-height: 1.8; max-width: 560px; height: 140px; overflow: hidden; }
+.log div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log .s200 { color: var(--mist); } .log .bad { color: var(--attack); } .log .s403 { color: var(--fog); } .log .fix { color: var(--ok); }
+
+.steps { display: grid; gap: 24px; margin-top: 32px; }
+.steps p { color: var(--mist); margin: 0; }
+.attack { color: var(--attack); }
+.ok { color: var(--ok); }
+
+.solid { background: var(--ink); position: relative; z-index: 1; }
+.solid section { padding: 96px 32px; }
+.solid .wrap { max-width: 1200px; margin: 0 auto; }
+.solid section.alt { background: var(--deep); }
+.embed { margin-top: 32px; border-radius: 6px; overflow: hidden; background: var(--deep); }
+.embed iframe { display: block; width: 100%; height: 860px; border: 0; }
+@media (max-width: 860px) { .embed iframe { height: 760px; } }
+video { width: 100%; display: block; border-radius: 6px; background: var(--ink); margin-top: 32px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; margin-top: 48px; }
+.fact b { display: block; font-size: 60px; line-height: 1.1; color: var(--fog); }
+.fact span { color: var(--mist); font-size: 17px; }
+.tablewrap { overflow-x: auto; margin-top: 32px; }
+table { width: 100%; border-collapse: collapse; font-size: 16px; }
+th, td { text-align: left; padding: 12px 16px; vertical-align: top; }
+th { color: var(--mist); font-weight: 500; }
+tbody tr:nth-child(odd) td { background: var(--raise); }
+td:first-child { color: var(--mist); }
+pre { background: var(--ink); color: var(--fog); padding: 16px 24px; border-radius: 4px; overflow-x: auto; font-family: "JetBrains Mono", monospace; font-size: 15px; line-height: 1.6; margin: 24px 0; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+footer { background: var(--ink); padding: 48px 32px 64px; color: var(--mist); font-size: 16px; }
+footer .wrap { max-width: 1200px; margin: 0 auto; }
+
+@media (max-width: 860px) {
+  nav { padding: 12px 16px; }
+  nav .links { gap: 16px; font-size: 15px; }
+  nav .links .hide-s { display: none; }
+  .chapter { padding: 56vh 16px 64px; min-height: auto; align-items: flex-start; }
+  .chapter.hero { padding-top: 96px; min-height: 100vh; }
+  .chapter .copy { background: var(--page); padding: 24px 0; }
+  .solid section { padding: 64px 16px; }
+  .two { grid-template-columns: 1fr; gap: 32px; }
+  footer { padding: 48px 16px; }
+  th, td { padding: 8px 12px; }
+}
+</style>
+</head>
+<body>
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<nav>
+  <a class="name" href="./">ooda-aegis</a>
+  <div class="links">
+    <a class="hide-s" href="#problem">Problem</a>
+    <a class="hide-s" href="#solution">Solution</a>
+    <a class="hide-s" href="#live">Demo</a>
+    <a href="#demo">Film</a>
+    <a class="app" href="app/?replay">Live demo</a>
+  </div>
+</nav>
+
+<main>
+  <section class="chapter hero" data-ch="0">
+    <div class="copy">
+      <p class="prompt">root@docvault:~$ tail -f /var/log/attacks<span></span></p>
+      <h1>Someone breaks into your website at <span class="hl">3 a.m.</span> OODA-Aegis has fixed it before you wake up</h1>
+      <p class="lede">An AI agent by Nikhil Kumar. It spots the break-in, blocks it in seconds, writes the code fix, proves the fix works and puts it live. It runs on Meta&rsquo;s open models, on your own computer.</p>
+      <div class="buttons">
+        <a class="btn primary" href="#live">See it work</a>
+        <a class="btn" href="app/?replay">Open the live dashboard</a>
+      </div>
+      <div class="log" id="log" aria-label="Requests from a recorded run"></div>
+    </div>
+  </section>
+
+  <section class="chapter" data-ch="1" id="problem">
+    <div class="copy">
+      <h2>A website is a door that answers questions</h2>
+      <p class="lede">You ask it for a file and it hands you the file. Ask in a sneaky way, with something like <code>../../etc/passwd</code>, and a website with a bug hands over files it should never share.</p>
+      <p class="muted">Passwords, customer lists, secret keys. The attacker doesn&rsquo;t need a login. They only need to ask the right wrong question.</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-ch="2">
+    <div class="copy">
+      <h2>Fixing it takes people <span class="hl">hours</span></h2>
+      <p class="lede">Someone has to wake up, find the bug, write a fix, test it and ship it. The attacker keeps going the whole time.</p>
+      <p class="muted">A quick blocking rule helps for a minute, until the attacker changes one character. And a fix written by AI is not safe just because it looks right.</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-ch="3" id="solution">
+    <div class="copy">
+      <h2>OODA-Aegis watches, blocks and fixes on its own</h2>
+      <div class="steps">
+        <div><h3>It watches every reply</h3><p>If a reply contains a system file, another customer&rsquo;s data, or the site freezes, the agent knows.</p></div>
+        <div><h3>It blocks the attack in about 5 seconds</h3><p>Llama 3.2 3B names the attack and writes a rule for the front door. The agent checks that real customers still get through, then switches it on.</p></div>
+        <div><h3>It attacks itself</h3><p>It invents new versions of the attack to find what the rule misses. It always misses some, so the code has to change.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" data-ch="4">
+    <div class="copy">
+      <h2>It never trusts its <span class="hl">own</span> fix</h2>
+      <p class="lede">Llama 3.1 8B rewrites the broken code. Then the new code goes into a sealed box with no internet.</p>
+      <p class="muted">The real attack must break the old code and fail on the new one. So must every version it invented. And real customers must get exactly the same answers as before. If the AI&rsquo;s own test says &ldquo;fine&rdquo;, that counts for nothing.</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-ch="5">
+    <div class="copy">
+      <h2>Then it goes live with no downtime</h2>
+      <p class="lede">The new version gets <span class="ok">10%</span> of visitors, then <span class="ok">50%</span>, then everyone, with checks at every step.</p>
+      <p class="muted">If anything looks wrong, it switches back on its own. If no fix passes the box, it changes nothing and calls a person.</p>
+    </div>
+  </section>
+</main>
+
+<div class="solid">
+  <section id="live">
+    <div class="wrap">
+      <h2>The working dashboard, right here</h2>
+      <p class="lede" style="max-width:820px">This is the real dashboard, playing back a live run recorded on a laptop: the leak, the block at 5.3 s, the fix, the sandbox proof and the rollout. Click the tabs, switch attacks, or open it full screen.</p>
+      <div class="embed"><iframe src="app/?replay&amp;autoplay" title="OODA-Aegis dashboard playing a recorded live run" loading="lazy"></iframe></div>
+      <div class="buttons"><a class="btn primary" href="app/?replay">Open it full screen</a></div>
+    </div>
+  </section>
+
+  <section id="demo" class="alt">
+    <div class="wrap">
+      <h2>The film</h2>
+      <p class="lede" style="max-width:760px">The film tells the story, then shows the real dashboard from a recorded live run on a 16 GB laptop. Nothing in it is mocked.</p>
+      <video controls preload="metadata" poster="assets/poster.jpg" src="assets/ooda-aegis-demo.mp4"></video>
+      <div class="buttons"><a class="btn primary" href="app/?replay">Open the dashboard and replay it yourself</a><a class="btn" href="https://github.com/Nikhil8557/ooda-aegis">Code on GitHub</a></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>What happened in that run</h2>
+      <div class="facts">
+        <div class="fact"><b>5.3 s</b><span>from the first leak to the attack being blocked</span></div>
+        <div class="fact"><b>42.6 s</b><span>to a proven fix serving every visitor</span></div>
+        <div class="fact"><b>13</b><span>new versions of the attack it invented and tested</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt" id="results">
+    <div class="wrap">
+      <h2>Tested on three real bugs, three times each</h2>
+      <p class="muted" style="max-width:760px">The same prompts and the same sealed-box test for both setups.</p>
+      <div class="facts">
+        <div class="fact"><b>9 of 9</b><span>fixed and proven with Llama on a laptop</span></div>
+        <div class="fact"><b>9 of 9</b><span>with Muse Glimmer 30B, every one on the first try</span></div>
+        <div class="fact"><b>0 of 9</b><span>of Llama&rsquo;s own tests were right. The box caught every one.</span></div>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th></th><th>Llama 3.2 3B and Llama 3.1 8B, on a 16 GB laptop</th><th>Muse Glimmer 30B, on two free Kaggle T4 GPUs</th></tr></thead>
+        <tbody>
+          <tr><td>Verified fixes</td><td>9 of 9</td><td>9 of 9</td></tr>
+          <tr><td>Fixed on the first candidate</td><td>6 of 9</td><td>9 of 9</td></tr>
+          <tr><td>Attack named correctly</td><td>6 of 9</td><td>9 of 9</td></tr>
+          <tr><td>Blocking rule passed its checks</td><td>7 of 9</td><td>9 of 9</td></tr>
+          <tr><td>Model&rsquo;s own test was right</td><td>0 of 9</td><td>8 of 9</td></tr>
+          <tr><td>Variants the rule alone stops</td><td>48%</td><td>64%</td></tr>
+          <tr><td>Median time to block</td><td>8.7 s</td><td>68 s</td></tr>
+          <tr><td>Median time to a verified fix</td><td>112 s</td><td>348 s</td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted" style="margin-top:24px;max-width:860px">The laptop ran three trials at once, so those times are slower than one live run. The hardest bug, a pattern check that freezes the server, healed in one of three live runs with Llama 3.1 8B. In the other two nothing passed the box, so the agent changed nothing and called a person. Raw numbers: <a href="https://github.com/Nikhil8557/ooda-aegis/tree/main/benchmark/results">benchmark/results</a>.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap two">
+      <div>
+        <h2>Built on Meta&rsquo;s open models</h2>
+        <p class="muted">A defence agent has to read your code and whatever leaked. With open weights, all of it stays on your own machine. No keys, no outside service.</p>
+      </div>
+      <div class="tablewrap" style="margin-top:0"><table>
+        <thead><tr><th>Model</th><th>Job</th></tr></thead>
+        <tbody>
+          <tr><td>Llama 3.2 3B</td><td>Names the attack, writes the blocking rule, invents variants. On the laptop.</td></tr>
+          <tr><td>Llama 3.1 8B</td><td>Writes the code fix in the live demo. On the laptop.</td></tr>
+          <tr><td>Muse Glimmer 30B</td><td>Both jobs in the benchmark, on two free Kaggle T4 GPUs.</td></tr>
+          <tr><td>Muse Spark 1.3</td><td>Writes the fix when a Meta Model API key is set.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="wrap two">
+      <div>
+        <h2>Run it yourself</h2>
+        <p class="muted">You need Docker and Ollama. Open <code>localhost:3030</code>, pick an attack and fire it. There is no defend button.</p>
+      </div>
+      <pre>ollama pull llama3.2:3b
+ollama pull llama3.1:8b
+cd infrastructure
+docker compose up --build -d</pre>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2>What is real</h2>
+      <p class="muted" style="max-width:860px">In live mode, everything: the website and its leaks, Nginx, Redis, the peer servers, the sealed Docker box, the image builds, the traffic shifts, the switch back and every model call. The dashboard on this site replays runs recorded from that system. The customer records and leaked secrets are fake, and the three bugs were written for the demo.</p>
+    </div>
+  </section>
+</div>
+
+<footer><div class="wrap">OODA-Aegis by Nikhil Kumar, for the Meta Global AI Developer Hackathon 2026. MIT licence. Uses Meta Llama 3.2, Llama 3.1 and Muse Glimmer under Meta&rsquo;s licences.</div></footer>
+
+<script>
+// Real request lines from the recorded path-traversal run, looping in the hero.
+(() => {
+  const lines = [
+    ["s200", "GET /api/v1/documents/read?file=quarterly_report_2026.pdf  200"],
+    ["bad", "GET /api/v1/documents/read?file=../../../../etc/passwd  200  leaked"],
+    ["s200", "agent  telemetry: unix_passwd_leak, CWE-22"],
+    ["s403", "GET /api/v1/documents/read?file=../../../../etc/passwd  403  blocked at edge"],
+    ["s200", "GET /api/v1/documents/read?file=quarterly_report_2026.pdf  200"],
+    ["s200", "agent  red team: 13 variants, rule misses some"],
+    ["s200", "agent  sandbox: exploit works on v1, safe on v2, 24 passed"],
+    ["s200", "agent  canary 10%, 50%, 100%, probes ok"],
+    ["fix", "GET /api/v1/documents/read?file=../../../../etc/passwd  404  handled by patch"],
+  ];
+  const el = document.getElementById("log");
+  let i = 0;
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function push() {
+    const [cls, txt] = lines[i % lines.length];
+    const d = document.createElement("div");
+    d.className = cls; d.textContent = txt;
+    el.appendChild(d);
+    while (el.children.length > 5) el.removeChild(el.firstChild);
+    i++;
+  }
+  for (let k = 0; k < 5; k++) push();
+  if (!still) setInterval(push, 1400);
+})();
+</script>
+
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+<script type="module">
+import * as THREE from "three";
+
+const PAL = ["#06141B", "#11212D", "#253745", "#4A5C6A", "#9BA8AB", "#CCD0CF"].map((c) => new THREE.Color(c));
+const ATTACK = new THREE.Color("#E8907F"), OK = new THREE.Color("#93C9A6");
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const canvas = document.getElementById("gl");
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); } catch (e) { canvas.remove(); throw e; }
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+const scene = new THREE.Scene();
+scene.background = PAL[0].clone();
+scene.fog = new THREE.Fog(PAL[0].clone(), 9, 26);
+const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+
+// Light like the palette card: one soft beam from the top left, a low fill.
+scene.add(new THREE.HemisphereLight(0xcfd6d8, 0x06141b, 0.55));
+const key = new THREE.SpotLight(0xffffff, 260, 40, 0.55, 0.9, 1.6);
+key.position.set(-7, 9, 8);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.radius = 6;
+key.shadow.bias = -0.0004;
+scene.add(key, key.target);
+const rim = new THREE.DirectionalLight(0x9ba8ab, 0.6);
+rim.position.set(6, -2, -4);
+scene.add(rim);
+
+// Six pills, one per palette colour, lit so their faces shade from bright to dark.
+// a true stadium outline, extruded with a soft bevel
+const shape = new THREE.Shape();
+const PW = 3.4, PR = 0.62;
+shape.absarc(PW / 2, 0, PR, -Math.PI / 2, Math.PI / 2, false);
+shape.absarc(-PW / 2, 0, PR, Math.PI / 2, Math.PI * 1.5, false);
+const pillGeo = new THREE.ExtrudeGeometry(shape, { depth: 0.3, bevelEnabled: true, bevelThickness: 0.14, bevelSize: 0.12, bevelSegments: 8, curveSegments: 40 });
+pillGeo.center();
+const pills = PAL.map((c, k) => {
+  const m = new THREE.Mesh(pillGeo, new THREE.MeshStandardMaterial({ color: c.clone().lerp(new THREE.Color("#ffffff"), k === 0 ? 0.05 : 0), roughness: 0.52, metalness: 0.05 }));
+  m.castShadow = true; m.receiveShadow = true;
+  scene.add(m);
+  return m;
+});
+const group = new THREE.Group(); scene.add(group);
+
+// Request packets that fly in from far away.
+const N = 90, ATK = 10;
+const packets = new THREE.InstancedMesh(new THREE.SphereGeometry(0.07, 16, 12), new THREE.MeshStandardMaterial({ roughness: 0.4 }), N);
+packets.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+scene.add(packets);
+const seeds = Array.from({ length: N }, (_, i) => ({ ph: Math.random(), ang: Math.random() * Math.PI * 2, r: 1.2 + Math.random() * 3.2, sp: 0.08 + Math.random() * 0.08, atk: i < ATK }));
+seeds.forEach((s, i) => packets.setColorAt(i, s.atk ? ATTACK : PAL[4]));
+
+// A data cube the attacker pulls out in the problem chapter.
+const cubes = [0, 1, 2].map(() => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.28, 0.28), new THREE.MeshStandardMaterial({ color: ATTACK, roughness: 0.5 })); scene.add(m); return m; });
+
+// ---------------------------------------------------------------- layouts, one per chapter
+const CX = () => 0;
+const CY = () => 0;
+const P = (x, y, z, rx = 0, ry = 0, rz = 0) => ({ p: new THREE.Vector3(x, y, z), r: new THREE.Euler(rx, ry, rz) });
+const LAYOUTS = [
+  (k, t) => P(CX() + 0.2, CY() + 2.2 - k * 0.86 + Math.sin(t * 0.8 + k * 0.6) * 0.04, -1.4 + k * 0.36, -0.42, -0.5, 0.06),      // stack, like the palette card
+  (k, t) => { const x = [-2.3, -1.55, -0.8, 0.8, 1.55, 2.3][k]; return P(CX() + x, CY(), -0.6 - Math.abs(x) * 0.15, 0, -0.3, Math.PI / 2); }, // a wall with a door-sized gap
+  (k, t) => { const a = k * Math.PI / 3 + t * 0.35; return P(CX() + Math.cos(a) * 2.6, CY() + Math.sin(a) * 2.6, -1, 0.15, 0, a + Math.PI / 2); },   // a clock face, turning
+  (k, t) => { const a = k * Math.PI / 3 + t * 0.9; return P(CX() + Math.cos(a) * 1.75, CY() + Math.sin(a) * 1.75, 0.4 + Math.sin(t * 2 + k) * 0.05, 0, 0, a + Math.PI / 2); }, // a shield
+  (k, t) => { const left = k < 3, j = k % 3, shake = left ? Math.sin(t * 23 + k) * 0.05 : 0; return P(CX() + (left ? -1.5 : 1.5) + shake, CY() + 1.1 - j * 1.1, -0.4, -0.3, left ? 0.35 : -0.35, Math.PI / 2 + shake); }, // old code, new code
+  (k, t) => P(CX() - 1.4 + k * 0.5, CY() - 2.0 + k * 0.78, -2 + k * 0.5, -0.3, -0.6, 0.12),                                       // a staircase to 100%
+];
+const CAMS = [
+  [0, 0.4, 13], [0.3, 0.2, 13], [0, 0, 14], [-0.2, 0, 13.5], [0.4, 0.3, 12.5], [-0.4, 0.6, 13.5],
+];
+const BG = [0, 1, 2, 1, 2, 1];        // index into the palette per chapter
+
+// ---------------------------------------------------------------- scroll
+const chapters = [...document.querySelectorAll("[data-ch]")];
+let target = 0, cur = 0;
+function readScroll() {
+  const mid = innerHeight * 0.5;
+  let c = 0;
+  for (let i = 0; i < chapters.length; i++) {
+    const r = chapters[i].getBoundingClientRect();
+    if (r.top <= mid) c = i + Math.min(1, (mid - r.top) / r.height); // i plus how far through chapter i
+  }
+  target = Math.max(0, c - 0.5);
+}
+addEventListener("scroll", readScroll, { passive: true });
+let mx = 0, my = 0;
+addEventListener("pointermove", (e) => { mx = e.clientX / innerWidth - 0.5; my = e.clientY / innerHeight - 0.5; });
+function resize() {
+  renderer.setSize(innerWidth, innerHeight, false);
+  camera.aspect = innerWidth / innerHeight;
+  // shift the projection, not the scene: right of the text on wide screens, above it on phones
+  if (innerWidth > 860) camera.setViewOffset(innerWidth, innerHeight, -innerWidth * 0.24, 0, innerWidth, innerHeight);
+  else camera.setViewOffset(innerWidth, innerHeight, 0, innerHeight * 0.24, innerWidth, innerHeight);
+  camera.updateProjectionMatrix();
+  readScroll();
+}
+// distance at which a 3-unit radius fits the free area
+const fitDist = () => { const tanH = Math.tan((camera.fov / 2) * Math.PI / 180); return innerWidth > 860 ? 3 / (tanH * camera.aspect * 0.48) : 3 / (tanH * camera.aspect * 0.92); };
+addEventListener("resize", resize); resize();
+
+const sm = (x) => x * x * (3 - 2 * x);
+const tmpQ = new THREE.Quaternion(), qa = new THREE.Quaternion(), qb = new THREE.Quaternion(), m4 = new THREE.Matrix4(), sc = new THREE.Vector3(), v = new THREE.Vector3();
+const root = document.documentElement;
+let last = performance.now(), t = 0;
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!still) t += dt;
+  cur += (target - cur) * Math.min(1, dt * 4);
+  const last_ = LAYOUTS.length - 1;
+  const c = Math.min(last_, Math.max(0, cur)), i0 = Math.floor(c), i1 = Math.min(last_, i0 + 1), f = sm(c - i0);
+
+  // pills move between layouts and arrive from depth
+  pills.forEach((m, k) => {
+    const a = LAYOUTS[i0](k, t), b = LAYOUTS[i1](k, t);
+    const delay = Math.min(1, Math.max(0, f * 1.6 - k * 0.12));
+    m.position.lerpVectors(a.p, b.p, sm(delay));
+    m.position.z -= Math.sin(sm(delay) * Math.PI) * 2.2;           // swing back into depth while moving
+    qa.setFromEuler(a.r); qb.setFromEuler(b.r);
+    m.quaternion.slerpQuaternions(qa, qb, sm(delay));
+  });
+
+  // background colour walks through the palette with the scroll
+  const bg = PAL[BG[i0]].clone().lerp(PAL[BG[i1]], f);
+  scene.background.copy(bg); scene.fog.color.copy(bg);
+  root.style.setProperty("--page", "#" + bg.getHexString());
+
+  // camera
+  const ca = CAMS[i0], cb = CAMS[i1];
+  camera.position.set(lerp(ca[0], cb[0], f) + mx * 0.8, lerp(ca[1], cb[1], f) - my * 0.5, Math.max(lerp(ca[2], cb[2], f), fitDist()));
+  const look = v.set(0, 0, 0);
+  camera.lookAt(look);
+  key.target.position.set(CX(), CY(), 0);
+
+  // packets: in the problem chapters attacks get through; once the shield is up they bounce
+  const mode = Math.round(c);
+  const centre = new THREE.Vector3(CX(), CY(), 0);
+  seeds.forEach((s, i) => {
+    let k = (s.ph + t * s.sp) % 1;
+    const start = v.set(centre.x + Math.cos(s.ang) * s.r * 2.2, centre.y + Math.sin(s.ang) * s.r * 1.4, -22);
+    const end = s.atk && mode === 1 ? new THREE.Vector3(centre.x, centre.y, 8) : new THREE.Vector3(centre.x + Math.cos(s.ang) * s.r * 0.3, centre.y + Math.sin(s.ang) * s.r * 0.3, -0.8);
+    let pos = start.clone().lerp(end, k);
+    if (s.atk && (mode === 3 || mode === 4) && k > 0.8) { const back = (k - 0.8) / 0.2; pos = end.clone().lerp(start, back * 0.35); }
+    const size = mode === 0 || mode === 5 ? 0.6 : 1;
+    m4.compose(pos, tmpQ.identity(), sc.setScalar(size));
+    packets.setMatrixAt(i, m4);
+    if (s.atk) packets.setColorAt(i, (mode === 3 || mode === 4) && k > 0.8 ? OK : ATTACK);
+  });
+  packets.instanceMatrix.needsUpdate = true;
+  if (packets.instanceColor) packets.instanceColor.needsUpdate = true;
+
+  // the attacker carries data cubes out through the door gap
+  const show = Math.max(0, 1 - Math.abs(c - 1) * 2);
+  cubes.forEach((m, j) => {
+    const k = (t * 0.25 + j / 3) % 1;
+    m.position.set(CX(), CY() - 0.6 + j * 0.6, lerp(-2, 7, k));
+    m.rotation.set(t + j, t * 0.7, 0);
+    m.scale.setScalar(show);
+  });
+
+  window.__scene = { cur, target };
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+const lerp = (a, b, k) => a + (b - a) * k;
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

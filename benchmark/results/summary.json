@@ -1,0 +1,80 @@
+[
+ {
+  "models": "Llama 3.2 3B + Llama 3.1 8B",
+  "scenario": "path_traversal",
+  "trials": 3,
+  "triage_correct": 3,
+  "vpatch_ok": 3,
+  "edge_coverage": 77,
+  "verified": 3,
+  "median_candidates": 3,
+  "median_contain_s": 8.7,
+  "median_heal_s": 269.4,
+  "crashes": 0
+ },
+ {
+  "models": "Llama 3.2 3B + Llama 3.1 8B",
+  "scenario": "sqli",
+  "trials": 3,
+  "triage_correct": 3,
+  "vpatch_ok": 2,
+  "edge_coverage": 29,
+  "verified": 3,
+  "median_candidates": 1,
+  "median_contain_s": 9.7,
+  "median_heal_s": 79.9,
+  "crashes": 0
+ },
+ {
+  "models": "Llama 3.2 3B + Llama 3.1 8B",
+  "scenario": "redos",
+  "trials": 3,
+  "triage_correct": 0,
+  "vpatch_ok": 2,
+  "edge_coverage": 32,
+  "verified": 3,
+  "median_candidates": 1,
+  "median_contain_s": 7.2,
+  "median_heal_s": 125.0,
+  "crashes": 0
+ },
+ {
+  "models": "Muse Glimmer 30B",
+  "scenario": "path_traversal",
+  "trials": 3,
+  "triage_correct": 3,
+  "vpatch_ok": 3,
+  "edge_coverage": 59,
+  "verified": 3,
+  "median_candidates": 1,
+  "median_contain_s": 68.2,
+  "median_heal_s": 339.1,
+  "crashes": 0
+ },
+ {
+  "models": "Muse Glimmer 30B",
+  "scenario": "sqli",
+  "trials": 3,
+  "triage_correct": 3,
+  "vpatch_ok": 3,
+  "edge_coverage": 53,
+  "verified": 3,
+  "median_candidates": 1,
+  "median_contain_s": 66.1,
+  "median_heal_s": 321.0,
+  "crashes": 0
+ },
+ {
+  "models": "Muse Glimmer 30B",
+  "scenario": "redos",
+  "trials": 3,
+  "triage_correct": 3,
+  "vpatch_ok": 3,
+  "edge_coverage": 81,
+  "verified": 3,
+  "median_candidates": 1,
+  "median_contain_s": 68.2,
+  "median_heal_s": 394.0,
+  "crashes": 0
+ }
+]

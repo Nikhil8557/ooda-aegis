@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OODA-Aegis film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@1,500;1,600&family=JetBrains+Mono:wght@500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #1D1015; }
+  #c { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+  #screen { position: absolute; left: 160px; top: 24px; width: 1600px; height: 900px; overflow: hidden; visibility: hidden; border-radius: 6px; background: #06141B; }
+  #stage { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; transform-origin: 0 0; }
+  .demo { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; border: 0; visibility: hidden; background: #06141B; }
+  #cursor { position: absolute; left: 0; top: 0; width: 28px; height: 40px; pointer-events: none; z-index: 5; }
+  #ripple { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 3px solid #CCD0CF; pointer-events: none; z-index: 4; visibility: hidden; }
+  #cap { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); max-width: 1560px; padding: 10px 32px 14px;
+    background: #1D1015; color: #F1DDE0; font: italic 500 44px/1.25 "Cormorant Garamond", serif; text-align: center; border-radius: 4px; }
+  #cap:empty { display: none; }
+  #cap b { color: #D28B96; font-weight: 600; }
+  #cap code { font: 500 0.66em "JetBrains Mono", monospace; color: #D28B96; font-style: normal; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div id="screen"><div id="stage">
+  <iframe class="demo" id="d_path_traversal" src="../dist/index.html?replay"></iframe>
+  <iframe class="demo" id="d_sqli" src="../dist/index.html?replay"></iframe>
+  <div id="ripple"></div>
+  <svg id="cursor" viewBox="0 0 28 40"><path d="M2 2 L2 32 L10 25 L15 37 L20 35 L15 23 L26 23 Z" fill="#F1DDE0" stroke="#06141B" stroke-width="2.5" stroke-linejoin="round"/></svg>
+</div></div>
+<div id="cap"></div>
+<script type="module" src="scene.js"></script>
+</body>
+</html>

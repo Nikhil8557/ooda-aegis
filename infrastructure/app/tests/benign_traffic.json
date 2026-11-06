@@ -1,0 +1,16 @@
+{
+  "/api/v1/documents/read": [
+    {"file": "quarterly_report_2026.pdf"},
+    {"file": "handbook.txt"}
+  ],
+  "/api/v1/auth/customer-lookup": [
+    {"tenant": "tenant-prod-99", "email": "sarah.connor@cyberdyne.example"},
+    {"tenant": "tenant-finance", "email": "elena@hedgecorp.example"},
+    {"tenant": "tenant-prod-99", "email": "kyle.reese@cyberdyne.example"}
+  ],
+  "/api/v1/validator/email-or-domain": [
+    {"input": "lead.architect@defense.example.com"},
+    {"input": "sarah.connor@cyberdyne.example"},
+    {"input": "not-an-email"}
+  ]
+}
