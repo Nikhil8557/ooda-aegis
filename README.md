@@ -1,4 +1,4 @@
-![Poster](./site/assests/poster.jpg)
+![Poster](./site/assets/poster.jpg)
 
 # OODA-Aegis
 
